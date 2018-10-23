@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import sys
 import numpy as np
 import tensorflow as tf
@@ -70,6 +66,10 @@ class Logger(object):
     self.log.write(message)
     self.log.flush()
 
+  def flush(self): # it has been called explicitly
+    # print("*" * 80)
+    self.log.flush()
+    self.terminal.flush()
 
 def count_model_params(tf_variables):
   """
@@ -235,7 +235,7 @@ def get_train_ops(
       opt, average_decay=moving_average)
 
   train_op = opt.apply_gradients(
-    zip(grads, tf_variables), global_step=train_step)
+    list(zip(grads, tf_variables)), global_step=train_step)
 
   if get_grad_norms:
     return train_op, learning_rate, grad_norm, opt, grad_norms

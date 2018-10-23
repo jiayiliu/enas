@@ -1,9 +1,5 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
-import cPickle as pickle
+import pickle as pickle
 import shutil
 import sys
 import time
@@ -208,12 +204,12 @@ def get_ops(x_train, x_valid, x_test):
 def train(mode="train"):
   assert mode in ["train", "eval"], "Unknown mode '{0}'".format(mode)
 
-  with open(FLAGS.data_path) as finp:
-    x_train, x_valid, x_test, _, _ = pickle.load(finp)
-    print("-" * 80)
-    print("train_size: {0}".format(np.size(x_train)))
-    print("valid_size: {0}".format(np.size(x_valid)))
-    print(" test_size: {0}".format(np.size(x_test)))
+  with open(FLAGS.data_path, 'rb') as finp:
+    x_train, x_valid, x_test, _, _ = pickle.load(finp, encoding="latin1")
+    print(("-" * 80))
+    print(("train_size: {0}".format(np.size(x_train))))
+    print(("valid_size: {0}".format(np.size(x_valid))))
+    print((" test_size: {0}".format(np.size(x_test))))
 
   g = tf.Graph()
   with g.as_default():
@@ -235,7 +231,7 @@ def train(mode="train"):
     if FLAGS.controller_training and FLAGS.controller_sync_replicas:
       hooks.append(controller_ops["optimizer"].make_session_run_hook(True))
 
-    print("-" * 80)
+    print(("-" * 80))
     print("Starting session")
     with tf.train.SingularMonitoredSession(
       hooks=hooks, checkpoint_dir=FLAGS.output_dir) as sess:
@@ -305,8 +301,8 @@ def train(mode="train"):
                 child_ops["valid_reset"],
                 child_ops["test_reset"],
               ])
-              print("Epoch {}: Training controller".format(epoch))
-              for ct_step in xrange(FLAGS.controller_train_steps *
+              print(("Epoch {}: Training controller".format(epoch)))
+              for ct_step in range(FLAGS.controller_train_steps *
                                     FLAGS.controller_num_aggregate):
                 run_ops = [
                   controller_ops["loss"],
@@ -335,19 +331,19 @@ def train(mode="train"):
                   print(log_string)
 
               print("Here are 10 architectures")
-              for _ in xrange(10):
+              for _ in range(10):
                 arc, rw = sess.run([
                   controller_ops["sample_arc"],
                   controller_ops["reward"],
                 ])
-                print("{} rw={:<.3f}".format(np.reshape(arc, [-1]), rw))
+                print(("{} rw={:<.3f}".format(np.reshape(arc, [-1]), rw)))
 
             sess.run([
               child_ops["train_reset"],
               child_ops["valid_reset"],
               child_ops["test_reset"],
             ])
-            print("Epoch {}: Eval".format(epoch))
+            print(("Epoch {}: Eval".format(epoch)))
             valid_ppl = ops["eval_func"](sess, "valid")
             if valid_ppl < best_valid_ppl:
               best_valid_ppl = valid_ppl
@@ -362,7 +358,7 @@ def train(mode="train"):
             total_tr_ppl = 0
             num_batches = 0
 
-            print("-" * 80)
+            print(("-" * 80))
 
           if epoch >= FLAGS.num_epochs:
             ops["eval_func"](sess, "test", verbose=True)
@@ -370,18 +366,18 @@ def train(mode="train"):
 
 
 def main(_):
-  print("-" * 80)
+  print(("-" * 80))
   if not os.path.isdir(FLAGS.output_dir):
-    print("Path {} does not exist. Creating.".format(FLAGS.output_dir))
+    print(("Path {} does not exist. Creating.".format(FLAGS.output_dir)))
     os.makedirs(FLAGS.output_dir)
   elif FLAGS.reset_output_dir:
-    print("Path {} exists. Remove and remake.".format(FLAGS.output_dir))
+    print(("Path {} exists. Remove and remake.".format(FLAGS.output_dir)))
     shutil.rmtree(FLAGS.output_dir)
     os.makedirs(FLAGS.output_dir)
 
-  print("-" * 80)
+  print(("-" * 80))
   log_file = os.path.join(FLAGS.output_dir, "stdout")
-  print("Logging to {}".format(log_file))
+  print(("Logging to {}".format(log_file)))
   sys.stdout = Logger(log_file)
 
   utils.print_user_flags()
